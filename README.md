@@ -1,4 +1,4 @@
-#	Dedcated web application for the offline mobile app
+#	Dedicated web application for the offline mobile app
 
 For the purpose of the offline mobile app a separate web application has been developed which is not a Sakai tool. This separate application allows the administrator to upload materials that can be downloaded from the offline mobile app for offline use. The following instructions are intended for the Administrator of the offline mobile app web component.
 In order to access all the features (Upload, Update and Delete) we will need to log in.
