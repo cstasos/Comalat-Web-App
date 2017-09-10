@@ -1,0 +1,29 @@
+<div id="loginPanel">
+    <h2>Login</h2> 
+    
+    <div class="panel panel-danger" ng-show=error>
+        <div class="panel-heading">{{errorMessage}}</div>
+    </div>
+    
+    <form name="loginform" role="form">
+        <div class="form-group" ng-class="{ 'has-error': loginform.username.$error.pattern || (loginform.username.$dirty && loginform.username.$error.required) }">
+            <div class="input-group">
+                <span class="input-group-addon"><i class="glyphicon glyphicon-user fa-2x"></i></span>
+                <input type="text" name="username" id="username" class="form-control fa-2x" placeholder="Username" ng-model="username" required ng-pattern="/^[a-zA-Z0-9]*$/"/>
+            </div>
+            <span ng-show="loginform.username.$dirty && loginform.username.$error.required" class="help-block">Username is required</span>
+            <span ng-show="loginform.username.$error.pattern" class="help-block">Please use letters and numbers only</span>
+        </div>
+        <div class="form-group" ng-class="{ 'has-error': loginform.password.$dirty && loginform.password.$error.required }">
+            <div class="input-group">
+                <span class="input-group-addon"><i class="glyphicon glyphicon-lock fa-2x"></i></span>
+                <input type="password" name="password" id="password" class="form-control fa-2x" placeholder="Password" ng-model="password" required/>
+            </div>
+            <span ng-show="loginform.password.$dirty && loginform.password.$error.required" class="help-block">Password is required</span>
+        </div>
+        <div class="form-actions">
+            <button type="submit" ng-disabled="loginform.$invalid || loginform.$pending || dataLoading" class="btn btn-primary" ng-click="submit()">Login <i class="fa fa-sign-in"></i></button>
+            <img ng-if="dataLoading" src="img/gif/snake34.gif" alt=""/>
+        </div>
+    </form>
+</div>
