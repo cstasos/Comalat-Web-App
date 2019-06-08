@@ -1,5 +1,6 @@
-package comalat.Application.Domain.ResponseMessage;
+package comalat.Application.Domain;
 
+import comalat.HelperManager.FileManager.AccessData;
 import javax.xml.bind.annotation.XmlRootElement;
 
 /**
@@ -7,19 +8,24 @@ import javax.xml.bind.annotation.XmlRootElement;
  * @author SyleSakis
  */
 @XmlRootElement
-public class UserForm {
+public class User {
     
     private String username;
     private String password;
     private String fullname;
 
-    public UserForm() {
+    public User() {
     }
 
-    public UserForm(String username, String password, String fullname) {
+    public User(String username, String password, String fullname) {
         this.username = username;
         this.password = password;
         this.fullname = fullname;
+    }
+
+    public User(String username, String password) {
+        this.username = username;
+        this.password = password;
     }
 
     public String getUsername() {
@@ -44,6 +50,18 @@ public class UserForm {
 
     public void setFullname(String fullname) {
         this.fullname = fullname;
+    }
+
+    public boolean isAuthorized() {
+        if(AccessData.compareData(username, password)){
+            this.fullname = AccessData.getFullname();
+            return true;
+        }
+        return false;
+    }
+
+    public void save() {
+        AccessData.updateAccessFile(username, password, fullname);
     }
     
 }

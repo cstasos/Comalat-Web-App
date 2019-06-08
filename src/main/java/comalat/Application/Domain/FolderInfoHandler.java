@@ -6,12 +6,11 @@ import javax.xml.bind.annotation.XmlTransient;
  *
  * @author SyleSakis
  */
-public interface FolderInfoHandler {
+public interface FolderInfoHandler<T> {
 
     public long getSize();
     public int getNoOfUnits();
     @XmlTransient
     public long getLastUpdate();
-    public Object readFromFolder(String sourcePath);
-    
+    public T readFromFolder(String sourcePath);  
 }

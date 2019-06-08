@@ -1,13 +1,13 @@
 package comalat.Application.RestAPI.Resources;
 
+import comalat.Application.Domain.Course;
+import comalat.Application.Domain.Folder;
 import comalat.Constants;
-import comalat.Application.Domain.ResponseMessage.ErrorMessage;
-import comalat.Application.Domain.ResponseMessage.SuccessMessage;
+import comalat.Application.Domain.ResponseMessage.ResponseMessage;
 import comalat.Application.Exception.ConflictException;
 import comalat.Application.Exception.DataNotFoundException;
 import comalat.Application.Exception.InvalidInputException;
-import comalat.Services.FolderServices.CompressManager;
-import comalat.Services.FolderServices.FolderManager;
+import comalat.HelperManager.FolderHelper.FolderManager;
 
 import java.io.File;
 import java.io.InputStream;
@@ -41,7 +41,7 @@ public class CoursesResources {
 
     @GET
     public Response get() {
-        SuccessMessage message = new SuccessMessage("Courses", Status.OK.getStatusCode(), null);
+        ResponseMessage message = new ResponseMessage("Courses", Status.OK.getStatusCode(), null);
         return Response.status(Status.OK).entity(message).build();
     }
 
@@ -55,6 +55,8 @@ public class CoursesResources {
             @PathParam("coursesXY") String coursesXY,
             @HeaderParam("serialNo") long serialNo) {
 
+        Folder file = new Course(lang, lvl, coursesXY);
+        
         if (serialNo == 0) {
             serialNo = Date.from(Instant.now()).getTime();
         }
@@ -62,17 +64,15 @@ public class CoursesResources {
         String tmpname = lang + "_" + lvl + "_" + coursesXY;
         String zipname = tmpname + "_" + serialNo + Constants.ZIP_FORMAT;
 
-        String source = FolderManager.getPath(FolderManager.getPath(Constants.SOURCE_FOLDER, lang), lvl);
-        String path = FolderManager.getPath(source, coursesXY);
-        if (path == null) {
+        if (!file.exists()) {
             throw new DataNotFoundException("Can not find folder/file " + "{" + coursesXY + "} at folder {" + lang + "/" + lvl + "}");
         }
 
-        CompressManager.Compression(path, Constants.DOWNLOAD_FOLDER, zipname);
-        File file = new File(Paths.get(Constants.DOWNLOAD_FOLDER, zipname).toString());
-        return Response.ok(file, MediaType.APPLICATION_OCTET_STREAM)
+        file.compress(zipname);
+        File zipFile = new File(Paths.get(Constants.DOWNLOAD_FOLDER, zipname).toString());
+        return Response.ok(zipFile, MediaType.APPLICATION_OCTET_STREAM)
                 .header("Content-Disposition", "attachment; filename=\"" + tmpname + Constants.ZIP_FORMAT + "\"")
-                .header("x-zipfilename", file.getName())
+                .header("x-zipfilename", zipFile.getName())
                 .header("x-fileformat", Constants.ZIP_FORMAT)
                 .build();
     }
@@ -87,21 +87,19 @@ public class CoursesResources {
             @PathParam("lvl") String lvl,
             @PathParam("coursesXY") String coursesXY) {
 
-        String source = FolderManager.getPath(FolderManager.getPath(Constants.SOURCE_FOLDER, lang), lvl);
-        String path = FolderManager.getPath(source, coursesXY);
-        
-        if (path == null) {
-            ErrorMessage em = new ErrorMessage(coursesXY + " does not exist at folder " + lvl, Status.NOT_FOUND.getStatusCode(), null);
+        Folder file = new Course(lang, lvl, coursesXY);        
+        if (!file.exists()) {
+            ResponseMessage em = new ResponseMessage(coursesXY + " does not exist at folder " + lvl, Status.NOT_FOUND.getStatusCode(), null);
             return Response.status(Status.NOT_FOUND).entity(em).build();
         }
-        FolderManager.delete(path);
-        SuccessMessage sm = new SuccessMessage(coursesXY + " successfully deleted", Status.OK.getStatusCode(), null);
+        file.delete();
+        ResponseMessage sm = new ResponseMessage(coursesXY + " successfully deleted", Status.OK.getStatusCode(), null);
         return Response.status(Status.OK).entity(sm).build();
     }
 
     // upload courses to language/education_level
     // */comalat/languages/{lang}/levels/{lvl}/courses/upload
-    // Response 201 CREATE || 404 NOT FOUND || 404 CONFLICT
+    // Response 201 CREATE || 404 NOT FOUND || 409 CONFLICT
     @POST
     @Path("/upload")
     @Consumes(MediaType.MULTIPART_FORM_DATA)
@@ -113,6 +111,7 @@ public class CoursesResources {
             @PathParam("lvl") String lvl,
             @HeaderParam("serialNo") long serialNo) {
 
+        Course file = new Course();
         if (serialNo == 0) {
             serialNo = Date.from(Instant.now()).getTime();
         }
@@ -135,10 +134,10 @@ public class CoursesResources {
         }
         filename = filename.concat("_" + serialNo + Constants.ZIP_FORMAT);
 
-        FolderManager.saveUploadedFile(in, Constants.UPLOAD_FOLDER, filename);
-        CompressManager.Decompression(Constants.UPLOAD_FOLDER, source, filename);
+        file.save(in, filename);
+        file.decompress(source, filename);
 
-        SuccessMessage message = new SuccessMessage("Upload " + info.getFileName(), Status.CREATED.getStatusCode(), null);
+        ResponseMessage message = new ResponseMessage("Upload " + info.getFileName(), Status.CREATED.getStatusCode(), null);
         return Response.status(Status.CREATED).entity(message).build();
     }
 
@@ -155,6 +154,7 @@ public class CoursesResources {
             @PathParam("lvl") String lvl,
             @HeaderParam("serialNo") long serialNo) {
 
+        Course file = new Course();
         if (serialNo == 0) {
             serialNo = Date.from(Instant.now()).getTime();
         }
@@ -174,13 +174,13 @@ public class CoursesResources {
         String source = FolderManager.getPath(FolderManager.getPath(Constants.SOURCE_FOLDER, lang), lvl);
         filename = filename.concat("_" + serialNo + Constants.ZIP_FORMAT);
 
-        FolderManager.saveUploadedFile(in, Constants.UPLOAD_FOLDER, filename);
+        file.save(in, filename);
         if (FolderManager.getPath(source, courseName) != null) {
             FolderManager.delete(FolderManager.getPath(source, courseName));
         }
-        CompressManager.Decompression(Constants.UPLOAD_FOLDER, source, filename);
+        file.decompress(source, filename);
 
-        SuccessMessage message = new SuccessMessage("Updated " + info.getFileName(), Status.CREATED.getStatusCode(), null);
+        ResponseMessage message = new ResponseMessage("Updated " + info.getFileName(), Status.CREATED.getStatusCode(), null);
         return Response.status(Status.OK).entity(message).build();
     }
 

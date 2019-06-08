@@ -1,7 +1,7 @@
 package comalat.Application.RestAPI.Filters;
 
-import comalat.Services.FileServices.AccessData;
-import comalat.Services.FolderServices.FolderManager;
+import comalat.HelperManager.FileManager.AccessData;
+import comalat.HelperManager.FolderHelper.FolderManager;
 import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.container.ContainerRequestFilter;
 import javax.ws.rs.ext.Provider;

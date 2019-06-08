@@ -1,6 +1,8 @@
 package comalat.Application.Domain;
 
-import comalat.Services.FileServices.WordManager;
+import comalat.Constants;
+import comalat.HelperManager.FileManager.WordManager;
+import comalat.HelperManager.FolderHelper.FolderManager;
 import java.io.File;
 import java.io.FileFilter;
 import java.util.ArrayList;
@@ -14,7 +16,7 @@ import javax.xml.bind.annotation.XmlTransient;
  * @author SyleSakis
  */
 @XmlRootElement
-class Course implements FolderInfoHandler {
+public class Course extends Folder<Course> {
 
     @XmlElement(name = "Course")
     private String courseName;
@@ -26,6 +28,16 @@ class Course implements FolderInfoHandler {
     private long lastupdate = 0;
 
     public Course() {
+        units = new ArrayList<>();
+    }
+    
+    public Course(File file) {
+        super(file);
+        units = new ArrayList<>();
+    }
+    
+    public Course(String lang, String level, String course) {
+        super(FolderManager.getPath(FolderManager.getPath(FolderManager.getPath(Constants.SOURCE_FOLDER, lang), level), course));
         units = new ArrayList<>();
     }
 
@@ -120,4 +132,9 @@ class Course implements FolderInfoHandler {
         }
     }
 
+    @Override
+    public void decompress(String source, String filename){
+        super.decompress(source, filename);
+    }
+    
 }

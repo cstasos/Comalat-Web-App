@@ -1,4 +1,4 @@
-package comalat.Services.FolderServices;
+package comalat.HelperManager.FolderHelper;
 
 import comalat.Constants;
 import comalat.Application.Exception.ServerProcedureException;
@@ -204,7 +204,7 @@ public class FolderManager {
      * @return PDF file name.
      *
      */
-    public static String getFileName(String source) {
+    public static File getFileName(String source) {
         File directory = null;
         try {
             directory = new File(source);
@@ -221,7 +221,7 @@ public class FolderManager {
                     return false;
                 }
             })) {
-                return file.getName();
+                return file;
             }
         }
         return null;

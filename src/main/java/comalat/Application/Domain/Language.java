@@ -1,5 +1,7 @@
 package comalat.Application.Domain;
 
+import comalat.Constants;
+import comalat.HelperManager.FolderHelper.FolderManager;
 import java.io.File;
 import java.io.FileFilter;
 import java.text.SimpleDateFormat;
@@ -15,18 +17,29 @@ import javax.xml.bind.annotation.XmlTransient;
  * @author SyleSakis
  */
 @XmlRootElement
-public class Language implements FolderInfoHandler {
+public class Language extends Folder<Language>{ 
 
     @XmlElement(name = "Language")
     private String languageName;
     @XmlElement(name = "EducationLevels")
     private List<Level> levels;
+    
     @XmlTransient
     private long lastupdate = 0;
     @XmlElement(name = "noUnits")
     private int noUnits = 0;
 
     public Language() {
+        levels = new ArrayList<>();
+    }
+    
+    public Language(File file) {
+        super(file);
+        levels = new ArrayList<>();  
+    }
+    
+    public Language(String lang) {
+        super(FolderManager.getPath(Constants.SOURCE_FOLDER, lang));
         levels = new ArrayList<>();
     }
 
@@ -108,5 +121,9 @@ public class Language implements FolderInfoHandler {
     @Override
     public int getNoOfUnits() {
         return this.noUnits;
+    }
+    
+    public void decompress(String filename){
+        this.decompress(Constants.SOURCE_FOLDER, filename);
     }
 }

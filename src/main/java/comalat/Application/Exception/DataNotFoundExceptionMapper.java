@@ -1,6 +1,6 @@
 package comalat.Application.Exception;
 
-import comalat.Application.Domain.ResponseMessage.ErrorMessage;
+import comalat.Application.Domain.ResponseMessage.ResponseMessage;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.ext.ExceptionMapper;
@@ -15,7 +15,7 @@ public class DataNotFoundExceptionMapper implements ExceptionMapper<DataNotFound
 
     @Override
     public Response toResponse(DataNotFoundException ex) {
-        ErrorMessage errorMessage = new ErrorMessage(ex.getMessage(), Status.NOT_FOUND.getStatusCode(), null);
+        ResponseMessage errorMessage = new ResponseMessage(ex.getMessage(), Status.NOT_FOUND.getStatusCode(), null);
         return Response.status(Status.NOT_FOUND)
                 .entity(errorMessage)
                 .build();

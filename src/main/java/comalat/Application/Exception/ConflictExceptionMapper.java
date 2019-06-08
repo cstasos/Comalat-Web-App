@@ -1,6 +1,6 @@
 package comalat.Application.Exception;
 
-import comalat.Application.Domain.ResponseMessage.ErrorMessage;
+import comalat.Application.Domain.ResponseMessage.ResponseMessage;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.ext.ExceptionMapper;
@@ -15,7 +15,7 @@ public class ConflictExceptionMapper implements ExceptionMapper<ConflictExceptio
 
     @Override
     public Response toResponse(ConflictException ex) {
-        ErrorMessage errorMessage = new ErrorMessage(ex.getMessage(), Status.CONFLICT.getStatusCode(), null);
+        ResponseMessage errorMessage = new ResponseMessage(ex.getMessage(), Status.CONFLICT.getStatusCode(), null);
         return Response.status(Status.CONFLICT)
                 .entity(errorMessage)
                 .build();

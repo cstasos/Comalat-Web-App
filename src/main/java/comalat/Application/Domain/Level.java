@@ -1,10 +1,11 @@
 package comalat.Application.Domain;
 
 import comalat.Application.Domain.Enum.LevelType;
+import comalat.Constants;
+import comalat.HelperManager.FolderHelper.FolderManager;
 import java.io.File;
 import java.io.FileFilter;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
@@ -15,7 +16,7 @@ import javax.xml.bind.annotation.XmlTransient;
  * @author SyleSakis
  */
 @XmlRootElement
-class Level implements FolderInfoHandler {
+public class Level extends Folder<Level> {
 
     @XmlElement(name = "EducationLevel")
     private LevelType level;
@@ -27,6 +28,16 @@ class Level implements FolderInfoHandler {
     private long lastupdate = 0;
 
     public Level() {
+        courses = new ArrayList<>();
+    }
+    
+    public Level(File file){
+        super(file);
+        courses = new ArrayList<>();
+    }
+    
+    public Level(String lang, String level){
+        super(FolderManager.getPath(FolderManager.getPath(Constants.SOURCE_FOLDER, lang), level));
         courses = new ArrayList<>();
     }
 
@@ -110,5 +121,10 @@ class Level implements FolderInfoHandler {
         if (update > lastupdate) {
             lastupdate = update;
         }
+    }
+    
+    @Override
+    public void decompress(String source, String filename){
+        super.decompress(source, filename);
     }
 }

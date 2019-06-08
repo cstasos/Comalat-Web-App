@@ -1,13 +1,14 @@
 package comalat.Application.RestAPI.Resources;
 
+import comalat.Application.Domain.Folder;
+import comalat.Application.Domain.Language;
 import comalat.Constants;
-import comalat.Application.Domain.ResponseMessage.ErrorMessage;
-import comalat.Application.Domain.ResponseMessage.SuccessMessage;
+import comalat.Application.Domain.ResponseMessage.ResponseMessage;
 import comalat.Application.Exception.ConflictException;
 import comalat.Application.Exception.DataNotFoundException;
 import comalat.Application.Exception.InvalidInputException;
-import comalat.Services.FolderServices.CompressManager;
-import comalat.Services.FolderServices.FolderManager;
+import comalat.HelperManager.FolderHelper.CompressManager;
+import comalat.HelperManager.FolderHelper.FolderManager;
 
 import java.io.File;
 import java.io.InputStream;
@@ -39,47 +40,7 @@ import org.glassfish.jersey.media.multipart.FormDataParam;
 @Path("languages")
 @Produces(MediaType.APPLICATION_JSON)
 public class LanguagesResources {
-
-    // return zip file with all languages
-    @GET
-    public Response getAllLangauge(
-            @HeaderParam("serialNo") long serialNo,
-            @HeaderParam("foldername") String foldername) {
-
-        if (serialNo == 0) {
-            serialNo = Date.from(Instant.now()).getTime();
-        }
-        
-        if(foldername == null || foldername.isEmpty()){
-            foldername = "langs_";
-        }
-        
-        String zipname = foldername + serialNo + Constants.ZIP_FORMAT;
-
-        CompressManager.Compression(Constants.SOURCE_FOLDER, Constants.DOWNLOAD_FOLDER, zipname);
-        File file = new File(Paths.get(Constants.DOWNLOAD_FOLDER, zipname).toString());
-        
-        return Response.ok(file, MediaType.APPLICATION_OCTET_STREAM)
-                .header("Content-Disposition", "attachment; filename=\"Languages.zip\"")
-                .header("x-zipfilename", file.getName())
-                .header("x-fileformat", Constants.ZIP_FORMAT)
-                .build();
-    }
-
-    // delete source folder
-    // */comalat/languages/
-    // Response 200 OK || 404 NOT FOUND
-    @DELETE
-    public Response deleteAllLangauges() {
-        
-        if(!FolderManager.deleteAll(Constants.SOURCE_FOLDER)){
-            ErrorMessage em = new ErrorMessage("Main folder does not exist", Status.NOT_FOUND.getStatusCode(), null);
-            return Response.status(Status.NOT_FOUND).entity(em).build();
-        }
-        SuccessMessage sm = new SuccessMessage("Main folder successfully deleted", Status.OK.getStatusCode(), null);
-        return Response.status(Status.OK).entity(sm).build();
-    }
-
+    
     // get a language
     // */comalat/languages/{lang}
     @GET
@@ -91,17 +52,18 @@ public class LanguagesResources {
         if (serialNo == 0) {
             serialNo = Date.from(Instant.now()).getTime();
         }
+        
+        Folder language = new Language(lang);
+        
         String zipname = lang + "_" + serialNo + Constants.ZIP_FORMAT;
-        String path = FolderManager.getPath(Constants.SOURCE_FOLDER, lang);
-        if(path == null){
+        if(!language.exists()){
             throw new DataNotFoundException("Can not find folder/file " + "{" + lang + "}");
         }
 
-        CompressManager.Compression(path, Constants.DOWNLOAD_FOLDER, zipname);
-        File file = new File(Paths.get(Constants.DOWNLOAD_FOLDER, zipname).toString());
-        return Response.ok(file, MediaType.APPLICATION_OCTET_STREAM)
+        File zipFile = language.compress(zipname);
+        return Response.ok(zipFile, MediaType.APPLICATION_OCTET_STREAM)
                 .header("Content-Disposition", "attachment; filename=\"" + lang + Constants.ZIP_FORMAT + "\"")
-                .header("x-zipfilename", file.getName())
+                .header("x-zipfilename", zipFile.getName())
                 .header("x-fileformat", Constants.ZIP_FORMAT)
                 .build();
     }
@@ -114,13 +76,14 @@ public class LanguagesResources {
     public Response deleteLanguage(
             @PathParam("lang") String lang) {
         
-        String path = FolderManager.getPath(Constants.SOURCE_FOLDER, lang);
-        if(path == null){
-            ErrorMessage em = new ErrorMessage(lang + " does not exist", Status.NOT_FOUND.getStatusCode(), null);
+        Folder language = new Language(lang);
+        if(!language.exists()){
+            ResponseMessage em = new ResponseMessage(lang + " does not exist", Status.NOT_FOUND.getStatusCode(), null);
             return Response.status(Status.NOT_FOUND).entity(em).build();
-        }        
-        FolderManager.delete(path);
-        SuccessMessage sm = new SuccessMessage(lang + " successfully deleted", Status.OK.getStatusCode(), null);
+        }
+
+        language.delete();
+        ResponseMessage sm = new ResponseMessage(lang + " successfully deleted", Status.OK.getStatusCode(), null);
         return Response.status(Status.OK).entity(sm).build();
     }
 
@@ -135,6 +98,8 @@ public class LanguagesResources {
             @FormDataParam("name") String filename,
             @HeaderParam("serialNo") long serialNo) {
 
+        Language file = new Language();
+        
         if (serialNo == 0) {
             serialNo = Date.from(Instant.now()).getTime();
         }
@@ -155,10 +120,9 @@ public class LanguagesResources {
         }
         filename = filename.concat("_"+serialNo+Constants.ZIP_FORMAT);
         
-        FolderManager.saveUploadedFile(in, Constants.UPLOAD_FOLDER, filename);
-        CompressManager.Decompression(Constants.UPLOAD_FOLDER, Constants.SOURCE_FOLDER, filename);
-        
-        SuccessMessage message = new SuccessMessage("Upload "+info.getFileName(), Status.CREATED.getStatusCode(), null);
+        file.save(in, filename);
+        file.decompress(filename);
+        ResponseMessage message = new ResponseMessage("Upload "+info.getFileName(), Status.CREATED.getStatusCode(), null);
         return Response.status(Status.CREATED).entity(message).build();
     }
     
@@ -172,6 +136,8 @@ public class LanguagesResources {
             @FormDataParam("name") String filename,
             @HeaderParam("serialNo") long serialNo) {
 
+        Language file = new Language();
+        
         if (serialNo == 0) {
             serialNo = Date.from(Instant.now()).getTime();
         }
@@ -188,13 +154,14 @@ public class LanguagesResources {
         filename = filename.replace(" ", "");
         filename = filename.concat("_"+serialNo+Constants.ZIP_FORMAT);
         
-        FolderManager.saveUploadedFile(in, Constants.UPLOAD_FOLDER, filename);
+        file.save(in, filename);
         if (FolderManager.getPath(Constants.SOURCE_FOLDER, langName) != null) {
             FolderManager.delete(FolderManager.getPath(Constants.SOURCE_FOLDER, langName));
         }
-        CompressManager.Decompression(Constants.UPLOAD_FOLDER, Constants.SOURCE_FOLDER, filename);
         
-        SuccessMessage message = new SuccessMessage("Updated "+info.getFileName(), Status.OK.getStatusCode(), null);
+        file.decompress(filename);
+        
+        ResponseMessage message = new ResponseMessage("Updated "+info.getFileName(), Status.OK.getStatusCode(), null);
         return Response.status(Status.OK).entity(message).build();
     }
     

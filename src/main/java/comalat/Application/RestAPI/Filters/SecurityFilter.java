@@ -1,13 +1,13 @@
 package comalat.Application.RestAPI.Filters;
 
-import comalat.Application.Domain.ResponseMessage.ErrorMessage;
 import java.util.List;
 import java.util.StringTokenizer;
 import javax.ws.rs.ext.Provider;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 import com.sun.research.ws.wadl.HTTPMethods;
-import comalat.Services.FileServices.AccessData;
+import comalat.Application.Domain.ResponseMessage.ResponseMessage;
+import comalat.HelperManager.FileManager.AccessData;
 import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.container.ContainerRequestFilter;
 import org.glassfish.jersey.internal.util.Base64;
@@ -53,7 +53,7 @@ public class SecurityFilter implements ContainerRequestFilter {
                 }
             }
 
-            ErrorMessage errorMessage = new ErrorMessage();
+            ResponseMessage errorMessage = new ResponseMessage();
             errorMessage.setMessage("You dont have permission for this action");
             errorMessage.setCode(Status.UNAUTHORIZED.getStatusCode());
             errorMessage.setDocumentation("");

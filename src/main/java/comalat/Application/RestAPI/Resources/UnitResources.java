@@ -1,12 +1,13 @@
 package comalat.Application.RestAPI.Resources;
 
+import comalat.Application.Domain.Folder;
 import comalat.Constants;
-import comalat.Application.Domain.ResponseMessage.ErrorMessage;
-import comalat.Application.Domain.ResponseMessage.SuccessMessage;
+import comalat.Application.Domain.ResponseMessage.ResponseMessage;
+import comalat.Application.Domain.Unit;
 import comalat.Application.Exception.DataNotFoundException;
 import comalat.Application.Exception.ConflictException;
 import comalat.Application.Exception.InvalidInputException;
-import comalat.Services.FolderServices.FolderManager;
+import comalat.HelperManager.FolderHelper.FolderManager;
 
 import java.io.File;
 import java.io.InputStream;
@@ -37,7 +38,7 @@ public class UnitResources {
 
     @GET
     public Response get() {
-        SuccessMessage message = new SuccessMessage("Units", Status.OK.getStatusCode(), null);
+        ResponseMessage message = new ResponseMessage("Units", Status.OK.getStatusCode(), null);
         return Response.status(Status.OK).entity(message).build();
     }
 
@@ -50,18 +51,17 @@ public class UnitResources {
             @PathParam("lvl") String lvl,
             @PathParam("coursesXY") String coursesXY,
             @PathParam("unit") String unit) {
-
-        String source = FolderManager.getPath(FolderManager.getPath(FolderManager.getPath(Constants.SOURCE_FOLDER, lang), lvl), coursesXY);
-        source = FolderManager.getPath(source, unit);
-        String filename = FolderManager.getFileName(source);
-        if (filename == null) {
+        
+        Unit file = new Unit(lang, lvl, coursesXY, unit);
+        File pdfFile = file.getUnitFile();
+        
+        if (pdfFile == null || !pdfFile.exists()) {
             throw new DataNotFoundException("Can not find pdf file at folder {" + lang + "/" + lvl + "/" + coursesXY + "/" + unit + "}");
         }
 
-        File file = new File(Paths.get(source, filename).toString());
-        return Response.ok(file, MediaType.APPLICATION_OCTET_STREAM)
-                .header("Content-Disposition", "attachment; filename=\"" + filename + "\"")
-                .header("x-pdffilename", file.getName())
+        return Response.ok(pdfFile, MediaType.APPLICATION_OCTET_STREAM)
+                .header("Content-Disposition", "attachment; filename=\"" + pdfFile.getName() + "\"")
+                .header("x-pdffilename", pdfFile.getName())
                 .header("x-fileformat", Constants.PDF_FORMAT)
                 .build();
     }
@@ -77,21 +77,20 @@ public class UnitResources {
             @PathParam("coursesXY") String coursesXY,
             @PathParam("unit") String unit) {
 
-        String source = FolderManager.getPath(FolderManager.getPath(FolderManager.getPath(Constants.SOURCE_FOLDER, lang), lvl), coursesXY);
-        source = FolderManager.getPath(source, unit);
+        Folder file = new Unit(lang, lvl, coursesXY, unit);
 
-        if (source == null) {
-            ErrorMessage em = new ErrorMessage(unit + " does not exist at folder" + coursesXY, Status.NOT_FOUND.getStatusCode(), null);
+        if (!file.exists()) {
+            ResponseMessage em = new ResponseMessage(unit + " does not exist at folder" + coursesXY, Status.NOT_FOUND.getStatusCode(), null);
             return Response.status(Status.NOT_FOUND).entity(em).build();
         }
-        FolderManager.delete(source);
-        SuccessMessage sm = new SuccessMessage(unit + " successfully deleted", Status.OK.getStatusCode(), null);
+        file.delete();
+        ResponseMessage sm = new ResponseMessage(unit + " successfully deleted", Status.OK.getStatusCode(), null);
         return Response.status(Status.OK).entity(sm).build();
     }
 
     // upload pdf file to language/education_level/courses
     // */comalat/languages/{lang}/levels/{lvl}/courses/{coursesXY}/units/upload
-    // Response 201 CREATE || 404 NOT FOUND || 404 CONFLICT
+    // Response 201 CREATE || 404 NOT FOUND || 409 CONFLICT
     @POST
     @Path("/upload")
     @Consumes(MediaType.MULTIPART_FORM_DATA)
@@ -102,6 +101,8 @@ public class UnitResources {
             @PathParam("lang") String lang,
             @PathParam("lvl") String lvl,
             @PathParam("coursesXY") String coursesXY) {
+        
+        Unit file = new Unit(lang, lvl, coursesXY, unit);
 
         if (in == null || !info.getFileName().endsWith(Constants.PDF_FORMAT)) {
             throw new InvalidInputException("Please select pdf format file");
@@ -112,19 +113,16 @@ public class UnitResources {
             // if is null get name from info
             throw new InvalidInputException("Please input file name");
         }
-
-        String source = FolderManager.getPath(FolderManager.getPath(FolderManager.getPath(Constants.SOURCE_FOLDER, lang), lvl), coursesXY);
-        if (FolderManager.getPath(source, unit) != null) {
-            if (FolderManager.getFileName(FolderManager.getPath(source, unit)) != null
-                    && FolderManager.getFileName(FolderManager.getPath(source, unit))
-                            .equalsIgnoreCase(info.getFileName())) {
+        
+        if(file.getUnitDirecoty() != null){
+            File tmpFile = file.getUnitFile();
+            if(tmpFile != null && tmpFile.getName().equalsIgnoreCase(info.getFileName()))
                 throw new ConflictException("PDF file " + info.getFileName() + " at folder " + unit + " already exist!");
-            }
         }
-
-        FolderManager.saveUploadedFile(in, Paths.get(source, unit).toString(), info.getFileName());
-
-        SuccessMessage message = new SuccessMessage("Upload " + info.getFileName(), Status.CREATED.getStatusCode(), null);
+        
+        file.save(in, info.getFileName());
+        
+        ResponseMessage message = new ResponseMessage("Upload " + info.getFileName(), Status.CREATED.getStatusCode(), null);
         return Response.status(Status.CREATED).entity(message).build();
     }
 
@@ -140,6 +138,8 @@ public class UnitResources {
             @PathParam("lang") String lang,
             @PathParam("lvl") String lvl,
             @PathParam("coursesXY") String coursesXY) {
+        
+        Unit file = new Unit(lang, lvl, coursesXY, unit);
 
         if (in == null || !info.getFileName().endsWith(Constants.PDF_FORMAT)) {
             throw new InvalidInputException("Please select pdf format file");
@@ -148,15 +148,13 @@ public class UnitResources {
         if (unit == null || unit.replace(" ", "").isEmpty()) {
             throw new InvalidInputException("Please input file name");
         }
-
-        String source = FolderManager.getPath(FolderManager.getPath(FolderManager.getPath(Constants.SOURCE_FOLDER, lang), lvl), coursesXY);
-
-        if (Paths.get(source, unit) != null) {
-            FolderManager.delete(Paths.get(source, unit).toString());
+        
+        if(file.getUnitDirecoty() != null && new File(file.getUnitDirecoty()).exists()){
+            file.delete();
         }
-        FolderManager.saveUploadedFile(in, Paths.get(source, unit).toString(), info.getFileName());
-
-        SuccessMessage message = new SuccessMessage("Update " + info.getFileName(), Status.OK.getStatusCode(), null);
+        
+        file.save(in, info.getFileName());        
+        ResponseMessage message = new ResponseMessage("Update " + info.getFileName(), Status.OK.getStatusCode(), null);
         return Response.status(Status.OK).entity(message).build();
     }
 }

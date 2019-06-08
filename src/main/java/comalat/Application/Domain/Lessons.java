@@ -1,7 +1,9 @@
 package comalat.Application.Domain;
 
+import comalat.Constants;
 import java.io.File;
 import java.io.FileFilter;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import javax.xml.bind.annotation.XmlElement;
@@ -13,7 +15,7 @@ import javax.xml.bind.annotation.XmlTransient;
  * @author SyleSakis
  */
 @XmlRootElement
-public class Lessons implements FolderInfoHandler{
+public class Lessons extends Folder<Lessons>{
     @XmlElement(name = "Languages")
     private List<Language> languages;
     @XmlElement(name = "noUnits")
@@ -22,6 +24,7 @@ public class Lessons implements FolderInfoHandler{
     private long lastupdate;
 
     public Lessons() {
+        super(Paths.get(Constants.SOURCE_FOLDER).toFile());
         languages = new ArrayList<>();
     }
 

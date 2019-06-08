@@ -2,9 +2,12 @@ package comalat.Application.Domain;
 
 import comalat.Application.Domain.Enum.Skill;
 import comalat.Constants;
-import comalat.Services.FileServices.PDFManager;
+import comalat.HelperManager.FileManager.PDFManager;
+import comalat.HelperManager.FolderHelper.FolderManager;
 import java.io.File;
 import java.io.FileFilter;
+import java.io.InputStream;
+import java.nio.file.Paths;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
@@ -17,13 +20,12 @@ import javax.xml.bind.annotation.XmlTransient;
  * @author SyleSakis
  */
 @XmlRootElement
-class Unit implements FolderInfoHandler {
+public class Unit extends Folder<Unit>  {
 
     @XmlElement(name = "Unit")
     private String unitName;
     private String[] unitContents = new String[4];
     private List<Skill> exercisedSkills;
-    private File file;
     @XmlTransient
     private int noUnits = 0;
     @XmlTransient
@@ -32,11 +34,16 @@ class Unit implements FolderInfoHandler {
     public Unit() {
     }
 
+    public Unit(String lang, String level, String course, String unit) {
+        super(FolderManager.getPath(FolderManager.getPath(FolderManager.getPath(Constants.SOURCE_FOLDER, lang), level), course));
+        unitName = unit;
+    }
+
     public Unit(String unitName, String[] unitContents, List<Skill> exercisedSkills, File file) {
+        super(file);
         this.unitName = unitName;
         this.unitContents = unitContents;
         this.exercisedSkills = exercisedSkills;
-        this.file = file;
     }
 
     @XmlElement(name = "Skills")
@@ -64,7 +71,7 @@ class Unit implements FolderInfoHandler {
 
     public void setUnitContents(List<String[]> unitsContents) {
         try {
-            String name = unitName.replaceAll("\\D+","");
+            String name = unitName.replaceAll("\\D+", "");
             String col = unitName.replace("unit", "");
             int column = Integer.parseInt(name);
             column = (column - 1) % 5;
@@ -91,15 +98,6 @@ class Unit implements FolderInfoHandler {
             return "EMPTY";
         }
         return file.getName();
-    }
-
-    @XmlTransient
-    public File getFile() {
-        return file;
-    }
-
-    public void setFile(File file) {
-        this.file = file;
     }
 
     @Override
@@ -153,5 +151,25 @@ class Unit implements FolderInfoHandler {
     private String getModified() {
         SimpleDateFormat df = new SimpleDateFormat("HH:mm dd//MM/yyyy");
         return new String(df.format(new Date(lastupdate)));
+    }
+
+    @XmlTransient
+    public String getUnitDirecoty() {
+        return Paths.get(file.getPath(), unitName).toString();
+    }
+
+    @XmlTransient
+    public File getUnitFile() {
+        return FolderManager.getFileName(getUnitDirecoty());
+    }
+
+    @Override
+    public void save(InputStream in, String filename) {
+        FolderManager.saveUploadedFile(in, getUnitDirecoty(), filename);
+    }
+
+    @Override
+    public void delete() {
+        FolderManager.delete(getUnitDirecoty());
     }
 }
