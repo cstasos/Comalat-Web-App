@@ -5,7 +5,7 @@
  */
 package ClientAPI;
 
-import comalat.Constants;
+import comalat.app.Constants;
 import java.io.File;
 import java.nio.file.Paths;
 import javax.ws.rs.client.Client;

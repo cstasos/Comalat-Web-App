@@ -5,7 +5,7 @@
  */
 package ClientAPI;
 
-import comalat.Constants;
+import comalat.app.Constants;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
