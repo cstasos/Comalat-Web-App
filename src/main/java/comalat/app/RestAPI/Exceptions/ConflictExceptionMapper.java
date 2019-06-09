@@ -1,4 +1,4 @@
-package comalat.app.RestAPI.Exception;
+package comalat.app.RestAPI.Exceptions;
 
 import comalat.app.RestAPI.ResponseMessage.ResponseMessage;
 import javax.ws.rs.core.Response;

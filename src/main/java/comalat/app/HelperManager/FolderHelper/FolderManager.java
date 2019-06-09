@@ -1,7 +1,7 @@
 package comalat.app.HelperManager.FolderHelper;
 
 import comalat.app.Constants;
-import comalat.app.RestAPI.Exception.ServerProcedureException;
+import comalat.app.RestAPI.Exceptions.ServerProcedureException;
 import java.io.File;
 import java.io.FileFilter;
 import java.io.FileInputStream;

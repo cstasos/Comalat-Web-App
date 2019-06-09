@@ -4,9 +4,9 @@ import comalat.app.Domain.Folder;
 import comalat.app.Constants;
 import comalat.app.RestAPI.ResponseMessage.ResponseMessage;
 import comalat.app.Domain.lesson.Unit;
-import comalat.app.RestAPI.Exception.DataNotFoundException;
-import comalat.app.RestAPI.Exception.ConflictException;
-import comalat.app.RestAPI.Exception.InvalidInputException;
+import comalat.app.RestAPI.Exceptions.DataNotFoundException;
+import comalat.app.RestAPI.Exceptions.ConflictException;
+import comalat.app.RestAPI.Exceptions.InvalidInputException;
 
 import java.io.File;
 import java.io.InputStream;

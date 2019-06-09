@@ -1,4 +1,4 @@
-package comalat.app.RestAPI.Exception;
+package comalat.app.RestAPI.Exceptions;
 
 /**
  *

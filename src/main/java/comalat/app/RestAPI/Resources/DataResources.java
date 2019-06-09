@@ -4,7 +4,7 @@ import comalat.app.Domain.Folder;
 import comalat.app.Constants;
 import comalat.app.Domain.Lessons;
 import comalat.app.RestAPI.ResponseMessage.ResponseMessage;
-import comalat.app.RestAPI.Exception.DataNotFoundException;
+import comalat.app.RestAPI.Exceptions.DataNotFoundException;
 import comalat.app.HelperManager.FolderHelper.FolderManager;
 import java.io.File;
 

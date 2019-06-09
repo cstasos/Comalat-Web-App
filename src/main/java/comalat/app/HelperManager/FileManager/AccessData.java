@@ -1,7 +1,7 @@
 package comalat.app.HelperManager.FileManager;
 
-import comalat.app.RestAPI.Exception.DataNotFoundException;
-import comalat.app.RestAPI.Exception.ServerProcedureException;
+import comalat.app.RestAPI.Exceptions.DataNotFoundException;
+import comalat.app.RestAPI.Exceptions.ServerProcedureException;
 import comalat.app.Constants;
 import java.io.IOException;
 import java.nio.charset.Charset;

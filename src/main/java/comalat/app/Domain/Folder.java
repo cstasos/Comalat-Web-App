@@ -1,6 +1,6 @@
 package comalat.app.Domain;
 
-import comalat.app.RestAPI.Exception.ServerProcedureException;
+import comalat.app.RestAPI.Exceptions.ServerProcedureException;
 import comalat.app.Constants;
 import comalat.app.Domain.FolderInfoHandler;
 import comalat.app.HelperManager.FolderHelper.CompressManager;
