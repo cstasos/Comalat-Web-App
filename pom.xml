@@ -14,7 +14,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <jersey.version>2.25.1</jersey.version>
         <pdfbox.version>2.0.6</pdfbox.version>
-        <apache-poi.version>3.16</apache-poi.version>
+        <apache-poi.version>5.2.1</apache-poi.version>
     </properties>
     
     <dependencies>
